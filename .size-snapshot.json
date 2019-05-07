@@ -1,0 +1,36 @@
+{
+  "/src/dist/huxley.cjs.development.js": {
+    "bundled": 125,
+    "minified": 72,
+    "gzipped": 86
+  },
+  "/src/dist/huxley.cjs.production.js": {
+    "bundled": 81,
+    "minified": 50,
+    "gzipped": 66
+  },
+  "/src/dist/huxley.es.production.js": {
+    "bundled": 63,
+    "minified": 33,
+    "gzipped": 52,
+    "treeshaked": {
+      "rollup": {
+        "code": 0,
+        "import_statements": 0
+      },
+      "webpack": {
+        "code": 951
+      }
+    }
+  },
+  "/src/dist/huxley.umd.development.js": {
+    "bundled": 424,
+    "minified": 238,
+    "gzipped": 181
+  },
+  "/src/dist/huxley.umd.production.js": {
+    "bundled": 374,
+    "minified": 216,
+    "gzipped": 167
+  }
+}
