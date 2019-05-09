@@ -1,21 +1,17 @@
-export const sum = (a: number, b: number) => {
-  if ('development' === process.env.NODE_ENV) {
-    console.log('boop');
-  }
-  return a + b;
-};
-
-enum Entities {
+// List all the entities types
+export enum Entities {
   Node = 'node',
   Client = 'client'
 }
 
+// Define the entity's properties
 export type Entity = {
   address: String,
   protocol: String,
   type: Entities
 }
 
+// Define the message's properties
 export type Message = {
   sender: Entity,
   recipient: Entity,
@@ -25,37 +21,21 @@ export type Message = {
   authentication?: Object
 }
 
+// Define the Plug settings
 export type PlugSettings = {
-  switcher: Function,
-  pipe?: Pipe
+  switcher: Function
 }
 
+// With the plug you can attach callbacks to incoming messages
 export class Plug {
-  piping?: Piping;
-  settings?: PlugSettings;
-  constructor(piping?: Piping, settings?: PlugSettings) {
-    if (piping) {
-      this.piping = piping
-      if(settings) {
-        this.settings = settings
-      }
-    }
-  }
-  working() {
-    return this.piping ? true : false
+  pipes: Array<Pipe>;
+  settings: PlugSettings;
+  constructor(pipes: Array<Pipe>, settings: PlugSettings) {
+    this.pipes = pipes
+    this.settings = settings
   }
   attach(callback: Function): Boolean {
-
-    let pipes = []
-    if (this.settings && this.settings.pipe) {
-      pipes.push(this.settings.pipe)
-    } else if (this.piping) {
-      pipes = this.piping.pipes
-    } else {
-      return false
-    }
-
-    pipes.forEach(pipe => {
+    this.pipes.forEach(pipe => {
       if (this.settings && this.settings.switcher) {
         pipe.attach(this.settings.switcher, callback)
       }
@@ -65,50 +45,70 @@ export class Plug {
   }
 }
 
-class Pipe {
-  id?: String
-  constructor(id?: String) {
-    if (id) {
-      this.id = id
-    }
+export abstract class Pipe {
+  working: Boolean = true
+  protocol: String | null = null
+  abstract send(message: Message, callbackResponse?: Function): Boolean
+  abstract attach(switcher: Function, callback: Function): Boolean
+}
+
+export class NullPipe extends Pipe {
+  working = false
+  protocol = null
+  send(message: Message, callbackResponse?: Function): Boolean {
+    return true
   }
-  working() {
-    return this.id ? true : false
-  }
-  send(message: Message): Promise<any> {
-    return new Promise(resolve=>resolve())
+  attach(switcher: Function, callback: Function): Boolean {
+    return true
   }
 }
 
-class Piping {
+export class WebSocketPipe extends Pipe {
+  protocol = 'ws'
+  send(message: Message, callbackResponse?: Function): Boolean {
+    //let responseHash = hash(message)
+    return true
+  }
+  attach(switcher: Function, callback: Function): Boolean {
+    return true
+  }
+}
+
+export class HttpPipe extends Pipe {
+  protocol = 'http'
+  send(message: Message, callbackResponse?: Function): Boolean {
+    //let responseHash = hash(message)
+    //(response: Message) => response.sender.address === message.recipient.address && response.hash === responseHash
+    return true
+  }
+  attach(switcher: Function, callback: Function): Boolean {
+    return true
+  }
+}
+
+export class Piping {
   pipes: Array<Pipe>;
   constructor(pipes: Array<Pipe>) {
     this.pipes = pipes
   }
   getPipeByEntity(entity: Entity): Pipe {
-    return this.pipes.find(pipe => pipe.id === entity.protocol) || new Pipe()
+    return this.pipes.find(pipe => pipe.protocol === entity.protocol) || new NullPipe()
   }
-  send(message: Message, callbackResponse?: Function): Promise<any> {
+  send(message: Message, callbackResponse?: Function): Boolean {
     let pipe: Pipe = this.getPipeByEntity(message.recipient)
-    if (!pipe.working()) {
-      return new Promise((_resolve, reject)=> reject())
-    }
-    if (callbackResponse) {
-      let responseHash = hash(message)
-      let plug = new Plug(this, {
-        pipe: pipe,
-        switcher: (response: Message) => response.sender.address === message.recipient.address && response.hash === responseHash
-      })  
-      plug.attach(callbackResponse)
-    }
-    return pipe.send(message)
+    return pipe.send(message, callbackResponse)
+  }
+  attach(plugSettings: PlugSettings, callback: Function) {
+    const plug = new Plug(this.pipes, plugSettings)
+    plug.attach(callback)
   }
 }
 
 // init
-const wsPipe = new Pipe('ws')
-const httpPipe = new Pipe('http')
-const piping = new Piping([wsPipe, httpPipe])
+const piping = new Piping([
+  new WebSocketPipe(),
+  new HttpPipe(),
+])
 
 // Send a message
 const message = <Message>{
@@ -117,13 +117,9 @@ const message = <Message>{
   action: 'register',
   parameters: {}
 }
-piping.send(message, (message: Message) => message)
-
+piping.send(message, (response: Message) => response)
 
 // Listen to messages attaching a callback
-const plug = new Plug(piping, {
+piping.attach({
   switcher: (message: Message) => message.action === 'register' && message.sender.type === Entities.Node,
-})
-if (plug.working()){
-  plug.attach((message: Message) => message)
-}
+}, (message: Message) => message)
