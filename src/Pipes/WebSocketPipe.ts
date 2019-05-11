@@ -3,11 +3,6 @@ import Pipe from '../Pipe'
 import hash from 'object-hash'
 import { Server, Socket } from 'socket.io'
 
-type CallbackSocket = {
-    callback: Callback,
-    socket: Socket
-}
-
 class Callback {
     switcher: Function
     callback: Function
@@ -30,7 +25,6 @@ export default class WebSocketPipe extends Pipe {
     server: Server
     protocol = 'ws'
     callbacks: Array<Callback> = []
-    callbackSocket: Array<CallbackSocket> = []
     constructor(server: Server) {
         super()
         this.server = server
@@ -52,12 +46,6 @@ export default class WebSocketPipe extends Pipe {
         // Create new Callback object
         let newCallback = new Callback(switcher, callback)
         this.callbacks.push(newCallback)
-
-        /* this.callbacks.forEach(callback => {
-                if (!this.callbackSocket.find((ps: CallbackSocket) => ps.callback.hash() === callback.hash() && ps.socket.id === socket.id )) {
-                    
-                }
-        }) */
         // Attach the new callback to all the sockets
         this.sockets.forEach(socket => {
             socket.on('asd', (message: Message) => {
@@ -65,7 +53,6 @@ export default class WebSocketPipe extends Pipe {
                     newCallback.callback(message)
                 }
             })
-            this.callbackSocket.push({callback: newCallback, socket})
         })
         return true
     }
@@ -78,7 +65,6 @@ export default class WebSocketPipe extends Pipe {
                         callback.callback(message)
                     }
                 })
-                this.callbackSocket.push({callback, socket})
             })
         })
         return true
