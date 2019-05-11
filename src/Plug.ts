@@ -1,5 +1,5 @@
 import { PlugSettings } from './types'
-import Pipe from 'Pipe' 
+import Pipe from 'Pipe'
 
 // With the plug you can attach callbacks to incoming messages
 export default class Plug {

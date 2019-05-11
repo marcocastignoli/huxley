@@ -12,7 +12,7 @@ class Callback {
         this.callback = callback
         this._hash = hash({
             switcher: this.switcher,
-            callback: this.callback, 
+            callback: this.callback,
         })
     }
     hash(): String {
@@ -60,7 +60,7 @@ export default class WebSocketPipe extends Pipe {
         this.server.on("connection", (socket: any) => {
             this.sockets.push(socket)
             this.callbacks.forEach(callback => {
-            socket.on('asd', (message: Message) => {
+                socket.on('asd', (message: Message) => {
                     if (callback.switcher(message)) {
                         callback.callback(message)
                     }

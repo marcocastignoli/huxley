@@ -2,25 +2,9 @@
 import Piping from '../src/Piping'
 import WebSocketPipe from '../src/Pipes/WebSocketPipe'
 import WebSocketClientPipe from '../src/Pipes/WebSocketClientPipe'
-import {Message, Entities, Entity} from '../src/types'
+import { Message, Entities, Entity } from '../src/types'
 import socketIO = require('socket.io');
 import socketIOClient = require('socket.io-client')
-/*
-import { Message, Entity, Entities } from '../src/types'
-// Send a message
-const message = <Message>{
-  sender: <Entity>{ address: '123ih123', protocol: 'ws', type: Entities.Node },
-  recipient: <Entity>{ address: 'adj1923h', protocol: 'ws', type: Entities.Client },
-  action: 'register',
-  parameters: {}
-}
-piping.send(message, (response: Message) => response)
-
-// Listen to messages attaching a callback
-piping.attach({
-  switcher: (message: Message) => message.action === 'register' && message.sender.type === Entities.Node,
-}, (message: Message) => message) */
-
 
 describe('Can send and receive messages', () => {
   let io = socketIO()
@@ -62,7 +46,7 @@ describe('Can send and receive messages', () => {
     clientPiping.attach({
       switcher: (message: Message) => message.action === 'test',
     }, (message: Message) => {
-      expect(message.parameters).toStrictEqual({success: true})
+      expect(message.parameters).toStrictEqual({ success: true })
       done()
     })
 
@@ -79,7 +63,7 @@ describe('Can send and receive messages', () => {
     serverPiping.attach({
       switcher: (message: Message) => message.action === 'test',
     }, (message: Message) => {
-      expect(message.parameters).toStrictEqual({success: true})
+      expect(message.parameters).toStrictEqual({ success: true })
       done()
     })
 
